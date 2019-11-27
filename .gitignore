@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# .idea settings
+
+.idea
+
+log.txt
+data/

@@ -1,0 +1,40 @@
+import pygame as pg
+
+# actions and moods
+IDLE = 0
+PITY = 1
+EXCITEMENT = 2
+THROW = 3
+THINKING = 4
+WALK_LEFT = 5
+WALK_RIGHT = 6
+LONG_PITY = 7
+STOP = 8
+LOOK_RIGHT = 9
+
+ANXIOUS = 1
+MAGIC = 2
+COOL = 3
+WALK_LEFT_BACKWARDS = 4
+
+CLIMB = 1
+
+TXT_CLEAR = 0
+TXT_ANGST = 1
+TXT_HELP = 2
+TXT_WAND = 3
+TXT_CANNON = 4
+TXT_RELOAD = 5
+TXT_TASKS = 6
+TXT_LUCK = 7
+TXT_COUNT = 8
+TXT_LISTEN = 9
+
+# task methods
+ASK = 0
+WRITE = 1
+MATRIX = 2
+
+SCREENRECT = pg.Rect(0, 0, 1920, 1080)
+WALLS = pg.Rect(650, 700, 1820 - 650, 1080)
+
