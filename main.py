@@ -840,6 +840,8 @@ def play(players, win):
 
         for event in pg.event.get():
 
+            # ----- start event loop ---------------
+
             if event.type == NEW_ROUND and not game_over:
                 ma = table[table_index][0]
                 mb = table[table_index][1]
@@ -899,7 +901,84 @@ def play(players, win):
                     is_asking = False
                     is_editing = True
 
-        keys = pg.key.get_pressed()
+            if is_editing:
+                if event.type == pg.KEYDOWN and not wait_for_release:
+                    if event.key == pg.K_0:
+                        enter += '0'
+                        changed = True
+                    elif event.key == pg.K_1:
+                        enter += '1'
+                        changed = True
+                    elif event.key == pg.K_2:
+                        enter += '2'
+                        changed = True
+                    elif event.key == pg.K_3:
+                        enter += '3'
+                        changed = True
+                    elif event.key == pg.K_4:
+                        enter += '4'
+                        changed = True
+                    elif event.key == pg.K_5:
+                        enter += '5'
+                        changed = True
+                    elif event.key == pg.K_6:
+                        enter += '6'
+                        changed = True
+                    elif event.key == pg.K_7:
+                        enter += '7'
+                        changed = True
+                    elif event.key == pg.K_8:
+                        enter += '8'
+                        changed = True
+                    elif event.key == pg.K_9:
+                        enter += '9'
+                        changed = True
+                    elif event.key == pg.K_BACKSPACE:
+                        enter = enter[:-1]
+                        changed = True
+                    elif event.key == pg.K_RETURN:
+                        changed = False
+                        wait_for_release = True
+                    elif event.key == pg.K_SPACE:
+                        changed = False
+                        wait_for_release = True
+                    else:
+                        changed = False
+
+                    if changed:
+                        # do not allow more than two symbols in answer
+                        if len(enter) > 2:
+                            enter = enter[:2]
+                        else:
+                            digits.set_text(task_text + enter)
+                        wait_for_release = True
+
+                elif wait_for_release and event.type == KEYUP:
+                    wait_for_release = False
+                    if len(enter) > 0 and event.key == pg.K_RETURN:
+                        is_editing = False
+                        if int(enter) == ma * mb:
+                            precision = 0
+                        elif int(enter) > ma * mb:
+                            precision = 1
+                        else:
+                            precision = 2
+
+                        chn2.play(snd_shot)
+                        cannon.fire()
+                        fireball = Fireball(spider_crawling, precision)
+                        if precision:
+                            pool.append(table[table_index])
+                            logging.info('Incorrect ' + str(ma) + ' * ' + str(mb) + '. Answered ' + enter + '. Method ' + mmstr)
+
+                    if len(enter) == 0 and event.key == pg.K_SPACE and mm == core.ASK:
+                        # please repeat!
+                        is_asking = True
+                        pg.event.post(pg.event.Event(SOUND_END))
+                        penalty = 2
+                        logging.info('Repeat used for ' + str(ma) + ' * ' + str(mb))
+
+            # ----- end of event loop ---------------
 
         if delayed_task and now_tick - last_tick > delay and not game_over:
             sp_x = random.choice((900, 950, 1000, 1050, 1100, 1150))#, 1700))
@@ -938,86 +1017,11 @@ def play(players, win):
 
             delayed_task = False
 
+        keys = pg.key.get_pressed()
+
         if keys[pg.K_ESCAPE] or event.type == pg.QUIT and not game_over:
             logging.info('Aborted.')
             break
-
-        if is_editing:
-            if event.type == pg.KEYDOWN and not wait_for_release:
-                if event.key == pg.K_0:
-                    enter += '0'
-                    changed = True
-                elif event.key == pg.K_1:
-                    enter += '1'
-                    changed = True
-                elif event.key == pg.K_2:
-                    enter += '2'
-                    changed = True
-                elif event.key == pg.K_3:
-                    enter += '3'
-                    changed = True
-                elif event.key == pg.K_4:
-                    enter += '4'
-                    changed = True
-                elif event.key == pg.K_5:
-                    enter += '5'
-                    changed = True
-                elif event.key == pg.K_6:
-                    enter += '6'
-                    changed = True
-                elif event.key == pg.K_7:
-                    enter += '7'
-                    changed = True
-                elif event.key == pg.K_8:
-                    enter += '8'
-                    changed = True
-                elif event.key == pg.K_9:
-                    enter += '9'
-                    changed = True
-                elif event.key == pg.K_BACKSPACE:
-                    enter = enter[:-1]
-                    changed = True
-                elif event.key == pg.K_RETURN:
-                    changed = False
-                    wait_for_release = True
-                elif event.key == pg.K_SPACE:
-                    changed = False
-                    wait_for_release = True
-                else:
-                    changed = False
-
-                if changed:
-                    # do not allow more than two symbols in answer
-                    if len(enter) > 2:
-                        enter = enter[:2]
-                    else:
-                        digits.set_text(task_text + enter)
-                    wait_for_release = True
-
-            elif wait_for_release and event.type == KEYUP:
-                wait_for_release = False
-                if len(enter) > 0 and event.key == pg.K_RETURN:
-                    is_editing = False
-                    if int(enter) == ma * mb:
-                        precision = 0
-                    elif int(enter) > ma * mb:
-                        precision = 1
-                    else:
-                        precision = 2
-
-                    chn2.play(snd_shot)
-                    cannon.fire()
-                    fireball = Fireball(spider_crawling, precision)
-                    if precision:
-                        pool.append(table[table_index])
-                        logging.info('Incorrect ' + str(ma) + ' * ' + str(mb) + '. Answered ' + enter + '. Method ' + mmstr)
-
-                if len(enter) == 0 and event.key == pg.K_SPACE and mm == core.ASK:
-                    # please repeat!
-                    is_asking = True
-                    pg.event.post(pg.event.Event(SOUND_END))
-                    penalty = 2
-                    logging.info('Repeat used for ' + str(ma) + ' * ' + str(mb))
 
         # if keys[pg.K_f]:
         #     if cannon.ready_to_fire: # for debug shot always
