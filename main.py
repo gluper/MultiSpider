@@ -890,6 +890,8 @@ def play(players, win):
 
                 if mm == core.ASK:
                     board_text.set_board_image(core.TXT_LISTEN)
+                    if pool_task:
+                        delay = 2200  # 'cause Joker laughs somethat too long
                     delayed_task = True
                 elif mm == core.WRITE:
                     chn0.play(snd_knocking)
@@ -1097,82 +1099,6 @@ def play(players, win):
 
                     break
 
-        # if keys[pg.K_a] and stage_throwing == 0:
-        #
-        #     if random.choice((0, 1)) == 0:
-        #         helper = player_other_a
-        #     else:
-        #         helper = player_other_b
-        #
-        #     if not main_scene.has(helper):
-        #         # print("added " + helper.__repr__())
-        #         helper.add(main_scene)
-        #     stage_throwing = 1
-        #
-        # if stage_throwing == 1:
-        #     helper.walk_y = 600
-        #     helper.walk_left(2000, 1400, 15.0, 0.5)
-        #     stage_throwing = 2
-        #
-        # if stage_throwing == 2 and helper.walk_x <= 1400:
-        #     helper.set_action(core.THROW)
-        #     last_tick = pg.time.get_ticks()
-        #     stage_throwing = 3
-        #
-        # if stage_throwing == 3 and now_tick - last_tick > 1500:
-        #     sparkle = Sparkle()
-        #     sparkle.interp = 4
-        #     sparkle.path = Sparkle.path7
-        #     stage_throwing = 4
-        #
-        # if stage_throwing == 4 and sparkle and not sparkle.alive():
-        #     one_attacker = group_attacking_spiders.sprites()[0]
-        #     if one_attacker.start_sprite == 0:  # horizontal
-        #         Explosion(one_attacker.rect.move(130, -45))
-        #     else:
-        #         Explosion(one_attacker.rect.move(-20, 100))
-        #     chn2.play(snd_explosion)
-        #     last_tick = pg.time.get_ticks()
-        #     stage_throwing = 5
-        #
-        # if stage_throwing == 5 and now_tick - last_tick > 200:
-        #     one_attacker.kill()
-        #     stage_throwing = 6
-        #
-        # if stage_throwing == 6 and now_tick - last_tick > 1000:
-        #     helper.walk_right(helper.walk_x, 2000, 15, 0.5)
-        #     stage_throwing = 7
-        #     stage_throwing = 0
-
-        # if stage_throwing == 4 and now_tick - last_tick > 5000:
-        #     if (len(group_running_spiders) == 1 and youngest_spider_running.facing < 0 and youngest_spider_running.rect.x < 1800) \
-        #             or len(group_running_spiders) == 0:
-        #         stage_throwing = 1
-
-
-        # if keys[pg.K_m]:
-        #     if cannon.ready_to_fire:
-        #         chn2.play(snd_shot)
-        #         cannon.fire()
-        #         fireball = Fireball(spider_crawling, 1)
-        #
-        # if keys[pg.K_n]:
-        #     if cannon.ready_to_fire:
-        #         chn2.play(snd_shot)
-        #         cannon.fire()
-        #         fireball = Fireball(spider_crawling, -1)
-        #
-        # if keys[pg.K_7]:
-        #     if len(group_all_spiders) < 5 and not spider_crawling.alive():
-        #         now_tick = pg.time.get_ticks()
-        #         if now_tick - last_tick > 2000:
-        #             last_tick = now_tick
-        #             pg.event.post(pg.event.Event(NEW_ROUND))
-
-        # if keys[pg.K_0]:
-        #     # this is how the last added running spider can be found
-        #     last_running_spider = SpiderRun.containers[0].sprites()[-1]
-
         # clear/erase the last drawn sprites
         main_scene.clear(win, bg)
 
@@ -1236,12 +1162,12 @@ def play(players, win):
                 pg.display.flip()
                 youngest_spider_running = SpiderRun(sp_x - 50, sp_y)
                 # player made no answer, make a correction
-                pool.append(table[table_index])
-                logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
-                is_editing = False
                 if correction and not correction.alive():
+                    is_editing = False
                     correction = Digits((120, 520))
                     correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+                    pool.append(table[table_index])
+                    logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
                 delayed_new_round = True
                 last_tick = pg.time.get_ticks()
             else:
@@ -1263,9 +1189,9 @@ def play(players, win):
 
             # joker is shot
             if joker.killed:
-                Explosion(joker.rect.move(120, 60))
+                Explosion(joker.rect.move(100, 60))
                 Explosion(joker.rect.move(150, 50))
-                Explosion(joker.rect.move(170, 60))
+                Explosion(joker.rect.move(200, 60))
                 chn2.play(snd_explosion)
                 joker.kill()
                 cannon.disappear()
@@ -1282,12 +1208,12 @@ def play(players, win):
                 if mm == core.MATRIX:
                     scroll.disappear()
                 # player made no answer, make a correction
-                pool.append(table[table_index])
-                logging.info('No answer for pool task ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
-                is_editing = False
                 if correction and not correction.alive():
                     correction = Digits((120, 520))
                     correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+                    pool.append(table[table_index])
+                    logging.info('No answer for pool task ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
+                    is_editing = False
                 delayed_new_round = True
                 last_tick = pg.time.get_ticks()
 
@@ -1326,6 +1252,7 @@ def play(players, win):
                 if not main_scene.has(helper):
                     # print("added " + helper.__repr__())
                     helper.add(main_scene)
+                    helper.walk_x = 2000
                 last_tick = pg.time.get_ticks()
                 stage_throwing = 4
 
