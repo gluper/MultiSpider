@@ -1079,6 +1079,13 @@ def play(players, win):
 
                 if keys[pg.K_q] or event.type == pg.QUIT:
                     logging.info('Exit from pause.')
+                    time_end_game = datetime.datetime.now()
+                    seconds = (time_end_game - time_start_game).seconds
+                    logging.info('Collected score ' + str(score_value))
+                    logging.info(players[selection].get('name', '?') + ' played ' + str(int(seconds / 60)) + ' minutes.')
+                    players[selection]['high_score'] = max(players[selection]['high_score'], score_value)
+                    players[selection]['total'] += score_value
+                    save_players_data(players)
                     return False
 
                 if keys[pg.K_ESCAPE]:
@@ -1214,7 +1221,7 @@ def play(players, win):
             delayed_new_round = False
 
             # check the pool
-            if len(group_attacking_spiders) > 0 and counter_correct >= 2 and len(pool) > 0:
+            if len(group_attacking_spiders) > 0 and counter_correct >= 9 and len(pool) > 0:
                 counter_correct = 0
                 pg.event.post(pg.event.Event(NEW_POOL_TASK))
             else:
@@ -1523,7 +1530,6 @@ def play(players, win):
 
             # cap the framerate
             clock.tick(40)
-
 
     if game_over:
         if pg.mixer:
