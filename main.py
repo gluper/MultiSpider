@@ -8,7 +8,7 @@ import core
 from pygame.locals import *
 
 from spider import SpiderRun, SpiderAttack, SpiderCrawlBig, SpiderRunDeco, SpiderRunAggressive
-from scenes import Glass, Cannon, Fireball, Explosion, Blaze, SpiderExplosion, Sparkle, BoardText, Digits, Marks, Scroll
+from scenes import Glass, Cannon, Fireball, Explosion, Blaze, SpiderExplosion, Sparkle, BoardText, Digits, Marks, Scroll, Joker
 from intro import PlayerSelection1, PlayerSelection2, PlayerSelection3
 from fonts import Score
 from players import Player1, Player2, Player3, Fairy
@@ -58,9 +58,6 @@ def save_players_data(players):
 
 
 def play(players, win):
-
-    # Load images, assign to sprite classes
-    # (do this before the classes are used, after screen setup)
     brick = load_image('brick-wall.jpg')
     win.blit(brick, (0, 0))
     pg.display.flip()
@@ -135,12 +132,16 @@ def play(players, win):
     while not selected:
 
         for event in pg.event.get():
-            keys = pg.key.get_pressed()
 
-        if keys[pg.K_ESCAPE] or event.type == pg.QUIT:
+            if event.type == pg.QUIT:
+                pg.quit()
+                return False
+
+        keys = pg.key.get_pressed()
+        if keys[pg.K_ESCAPE]:
             pg.quit()
             logging.info('Aborted ' + str(datetime.datetime.now()))
-            return
+            return False
 
         if keys[pg.K_RIGHT]:
             now_tick = pg.time.get_ticks()
@@ -239,6 +240,7 @@ def play(players, win):
     Player1.images_walk_right = load_images(*['awl' + str(i).zfill(2) + '.png' for i in range(1, 10)])
     Player1.images_walk_left = [pg.transform.flip(Player1.images_walk_right[i], True, False) for i in range(0, 6)]
     Player1.images_look_right = load_images('alr0.png')
+    Player1.images_throw = load_images(*['atr' + str(i).zfill(2) + '.png' for i in range(1, 19)])
 
     Player2.images_idle = load_images(*['lid' + str(i).zfill(2) + '.png' for i in range(1, 7)])
     Player2.images_pity = load_images(*['lpt0' + str(i) + '.png' for i in range(1, 10)])
@@ -247,6 +249,7 @@ def play(players, win):
     Player2.images_walk_right = load_images(*['lwl' + str(i).zfill(2) + '.png' for i in range(1, 7)])
     Player2.images_walk_left = [pg.transform.flip(Player2.images_walk_right[i], True, False) for i in range(0, 6)]
     Player2.images_look_right = load_images('llr0.png')
+    Player2.images_throw = load_images(*['ltr' + str(i).zfill(2) + '.png' for i in range(1, 16)])
 
     Player3.images_idle = load_images(*['nid' + str(i).zfill(2) + '.png' for i in range(1, 8)])
     Player3.images_pity = load_images(*['npt0' + str(i) + '.png' for i in range(1, 9)])
@@ -255,6 +258,7 @@ def play(players, win):
     Player3.images_walk_right = load_images(*['nwl' + str(i).zfill(2) + '.png' for i in range(1, 7)])
     Player3.images_walk_left = [pg.transform.flip(Player3.images_walk_right[i], True, False) for i in range(0, 6)]
     Player3.images_look_right = load_images('nlr0.png')
+    Player3.images_throw = load_images(*['ntr' + str(i).zfill(2) + '.png' for i in range(1, 16)])
 
     Fairy.images_flight_idle_right = load_images(*['tb' + str(i).zfill(2) + '.png' for i in range(1, 13)])
     Fairy.images_flight_idle_left = load_images(*['tbl' + str(i).zfill(2) + '.png' for i in range(1, 13)])
@@ -299,6 +303,8 @@ def play(players, win):
 
     Scroll.images = load_images('scroll.png')
 
+    Joker.images = load_images(*['j' + str(i).zfill(2) + '.png' for i in range(1, 10)])
+
     #load the sound effects
     snd_numbers = []
     for i in range(0, 10):
@@ -315,6 +321,7 @@ def play(players, win):
     snd_magic = load_sound('magic_spell.wav')
     snd_dundundun = load_sound('dundundun.wav')
     snd_knocking = load_sound('knocking.wav')
+    snd_joker = load_sound('laugh.wav')
 
     if pg.mixer:
         music = os.path.join(main_dir, 'data', 'Halloween.mp3')
@@ -329,6 +336,7 @@ def play(players, win):
     chn2 = pg.mixer.Channel(2)
 
     NEW_ROUND = pg.USEREVENT + 2
+    NEW_POOL_TASK = pg.USEREVENT + 3
 
     # Initialize Game Groups
     group_all_spiders = pg.sprite.Group()
@@ -355,11 +363,10 @@ def play(players, win):
     Player3.containers = intro_scene
 
     Fairy.containers = intro_scene
-    Sparkle.containers = intro_scene
-
+    Sparkle.containers = intro_scene, main_scene
     BoardText.containers = intro_scene, main_scene
-
     Scroll.containers = main_scene
+    Joker.containers = main_scene
 
     win.blit(bg, (0, 0))
 
@@ -418,11 +425,12 @@ def play(players, win):
 
     while True:
         for event in pg.event.get():
-            keys = pg.key.get_pressed()
 
-        if event.type == pg.QUIT:
-            pg.quit()
-            return
+            if event.type == pg.QUIT:
+                pg.quit()
+                return False
+
+        keys = pg.key.get_pressed()
 
         if keys[pg.K_ESCAPE]:
             # for quick skip the intro
@@ -764,10 +772,10 @@ def play(players, win):
         spider_crawling_deco.kill()
     if spider_running_deco and spider_running_deco.alive():
         spider_running_deco.kill()
-    if player_other_a:
-        player_other_a.kill()
-    if player_other_b:
-        player_other_b.kill()
+    # if player_other_a:
+    #     player_other_a.kill()
+    # if player_other_b:
+    #     player_other_b.kill()
     if fairy:
         fairy.kill()
     # if intro has been aborted create objects especially
@@ -800,7 +808,9 @@ def play(players, win):
     wait_for_release = False
     delayed_task = False
     delayed_new_round = False
+    make_throw_trick = False
 
+    counter_correct = 0 # length of correct answer's sequence
     score_value = 0
     score = Score()
     main_scene.add(score)
@@ -808,6 +818,9 @@ def play(players, win):
     marks = None
     marks2 = None
     correction = None
+    sparkle = None
+    one_attacker = None
+    joker = None
 
     scroll = Scroll(icon)
 
@@ -831,6 +844,9 @@ def play(players, win):
     # e = SpiderRun(1200, 880)
     # e.age = 2
 
+    stage_throwing = 0
+    pool_task = False
+
     while table_index < len(table):
 
         now_tick = pg.time.get_ticks()
@@ -841,11 +857,20 @@ def play(players, win):
         for event in pg.event.get():
 
             # ----- start event loop ---------------
+            if event.type == pg.QUIT:
+                pg.quit()
+                return False
 
-            if event.type == NEW_ROUND and not game_over:
-                ma = table[table_index][0]
-                mb = table[table_index][1]
-                mm = table[table_index][2]
+            if (event.type == NEW_ROUND or event.type == NEW_POOL_TASK) and not game_over:
+                if event.type == NEW_POOL_TASK:
+                    (ma, mb, mm) = pool.pop(0)
+                    pool_task = True
+                    chn2.play(snd_joker)
+                    logging.info('Task from pool: ' + str(ma) + ' * ' + str(mb) + '. Method ' + ['Ask', 'Write', 'Matrix'][mm])
+                else:
+                    (ma, mb, mm) = table[table_index]
+                    pool_task = False
+
                 mmstr = ['Ask', 'Write', 'Matrix'][mm]
                 print(table[table_index])
                 difficulty = max(ma, mb)
@@ -875,7 +900,8 @@ def play(players, win):
                     delay = 2000  # 2 seconds to read the text "Count small spiders"
                     delayed_task = True
 
-            if is_asking and event.type == SOUND_END and spider_crawling and spider_crawling.alive():
+            if is_asking and event.type == SOUND_END and \
+                    (spider_crawling and spider_crawling.alive() or joker and joker.alive()):
                 if snd_cycle == 0:
                     is_editing = False
                     pg.mixer.music.set_volume(0.2)  # mute music
@@ -893,7 +919,8 @@ def play(players, win):
                     player.set_action(core.THINKING)
                 else:
                     board_text.set_board_image(core.TXT_CLEAR)
-                    spider_crawling.speed = level  # after dictation speed up climbing (1 or 2)
+                    if not pool_task:
+                        spider_crawling.speed = level  # after dictation speed up climbing (1 or 2)
                     snd_cycle = 0
                     pg.mixer.music.set_volume(0.99)  # unmute
                     chn1.set_volume(0.99)
@@ -966,7 +993,10 @@ def play(players, win):
 
                         chn2.play(snd_shot)
                         cannon.fire()
-                        fireball = Fireball(spider_crawling, precision)
+                        if pool_task:
+                            fireball = Fireball(joker, precision)
+                        else:
+                            fireball = Fireball(spider_crawling, precision)
                         if precision:
                             pool.append(table[table_index])
                             logging.info('Incorrect ' + str(ma) + ' * ' + str(mb) + '. Answered ' + enter + '. Method ' + mmstr)
@@ -978,12 +1008,16 @@ def play(players, win):
                         penalty = 2
                         logging.info('Repeat used for ' + str(ma) + ' * ' + str(mb))
 
-            # ----- end of event loop ---------------
+        # ----- end of event loop ---------------
 
         if delayed_task and now_tick - last_tick > delay and not game_over:
-            sp_x = random.choice((900, 950, 1000, 1050, 1100, 1150))#, 1700))
-            sp_y = 850 + len(group_running_spiders)
-            spider_crawling = SpiderCrawlBig(sp_x)
+            if pool_task:
+                joker = Joker()
+                joker.rect.topleft = (950, -50)
+            else:
+                sp_x = random.choice((900, 950, 1000, 1050, 1100, 1150))#, 1700))
+                sp_y = 850 + len(group_running_spiders)
+                spider_crawling = SpiderCrawlBig(sp_x)
 
             if mm == core.ASK:
                 is_asking = True
@@ -1019,16 +1053,103 @@ def play(players, win):
 
         keys = pg.key.get_pressed()
 
-        if keys[pg.K_ESCAPE] or event.type == pg.QUIT and not game_over:
-            logging.info('Aborted.')
-            break
+        if keys[pg.K_ESCAPE] and not game_over:
+            # pause or exit
+            # debounce
+            while keys[pg.K_ESCAPE]:
+                for event in pg.event.get():
+                    keys = pg.key.get_pressed()
 
-        # if keys[pg.K_f]:
-        #     if cannon.ready_to_fire: # for debug shot always
-        #         chn2.play(snd_shot)
-        #         cannon.fire()
-        #         fireball = Fireball(spider_crawling, 0)
+            blackout = pg.Surface((1920, 1080))
+            blackout.fill((0, 0, 0))
+            for alpha in range(0, 30):
+                blackout.set_alpha(alpha)
+                win.blit(blackout, (0, 0))
+                pg.display.update()
+                #pg.time.delay(1)
+
+            font_pause = pg.font.SysFont("comicsansms", 72)
+            text_pause = font_pause.render("Pause", 1, Color('white'))
+            font_hint = pg.font.SysFont("arial", 24)
+            text_hint = font_hint.render('<Esc> Continue, <q> Quit', 1, Color('white'))
+
+            win.blit(text_pause, (400, 50))
+            win.blit(text_hint, (1600, 1050))
+            pg.display.flip()
+            logging.info('Game paused.')
+
+            while True:
+                for event in pg.event.get():
+                    keys = pg.key.get_pressed()
+
+                if keys[pg.K_q] or event.type == pg.QUIT:
+                    logging.info('Exit from pause.')
+                    return False
+
+                if keys[pg.K_ESCAPE]:
+                    while keys[pg.K_ESCAPE]:
+                        for event in pg.event.get():
+                            keys = pg.key.get_pressed()
+
+                    # clear/erase the last drawn sprites
+                    win.blit(bg, (0, 0))
+                    pg.display.flip()
+
+                    break
+
+        # if keys[pg.K_a] and stage_throwing == 0:
         #
+        #     if random.choice((0, 1)) == 0:
+        #         helper = player_other_a
+        #     else:
+        #         helper = player_other_b
+        #
+        #     if not main_scene.has(helper):
+        #         # print("added " + helper.__repr__())
+        #         helper.add(main_scene)
+        #     stage_throwing = 1
+        #
+        # if stage_throwing == 1:
+        #     helper.walk_y = 600
+        #     helper.walk_left(2000, 1400, 15.0, 0.5)
+        #     stage_throwing = 2
+        #
+        # if stage_throwing == 2 and helper.walk_x <= 1400:
+        #     helper.set_action(core.THROW)
+        #     last_tick = pg.time.get_ticks()
+        #     stage_throwing = 3
+        #
+        # if stage_throwing == 3 and now_tick - last_tick > 1500:
+        #     sparkle = Sparkle()
+        #     sparkle.interp = 4
+        #     sparkle.path = Sparkle.path7
+        #     stage_throwing = 4
+        #
+        # if stage_throwing == 4 and sparkle and not sparkle.alive():
+        #     one_attacker = group_attacking_spiders.sprites()[0]
+        #     if one_attacker.start_sprite == 0:  # horizontal
+        #         Explosion(one_attacker.rect.move(130, -45))
+        #     else:
+        #         Explosion(one_attacker.rect.move(-20, 100))
+        #     chn2.play(snd_explosion)
+        #     last_tick = pg.time.get_ticks()
+        #     stage_throwing = 5
+        #
+        # if stage_throwing == 5 and now_tick - last_tick > 200:
+        #     one_attacker.kill()
+        #     stage_throwing = 6
+        #
+        # if stage_throwing == 6 and now_tick - last_tick > 1000:
+        #     helper.walk_right(helper.walk_x, 2000, 15, 0.5)
+        #     stage_throwing = 7
+        #     stage_throwing = 0
+
+        # if stage_throwing == 4 and now_tick - last_tick > 5000:
+        #     if (len(group_running_spiders) == 1 and youngest_spider_running.facing < 0 and youngest_spider_running.rect.x < 1800) \
+        #             or len(group_running_spiders) == 0:
+        #         stage_throwing = 1
+
+
         # if keys[pg.K_m]:
         #     if cannon.ready_to_fire:
         #         chn2.play(snd_shot)
@@ -1061,6 +1182,7 @@ def play(players, win):
         # transform crawling -> running
         if spider_crawling and spider_crawling.alive():
             if player.action != core.PITY and fireball and fireball.alive() and fireball.precision != 0 and fireball.deg < -10:
+                counter_correct = 0
                 player.set_action(core.PITY)
                 spider_crawling.speed = 2  # after missed shop increase speed
                 sh = -15 if len(enter) < 2 else 0
@@ -1075,6 +1197,7 @@ def play(players, win):
 
             # crawling is shot
             if spider_crawling.killed:
+                counter_correct += 1
                 # various deaths, depending on difficulty
                 if difficulty <= 5:
                     SpiderExplosion(spider_crawling.rect)
@@ -1103,6 +1226,7 @@ def play(players, win):
                 delayed_new_round = True
                 last_tick = pg.time.get_ticks()
             elif spider_crawling.rect.y > sp_y:
+                counter_correct = 0
                 spider_crawling.kill()
                 cannon.disappear()
                 if mm == core.MATRIX:
@@ -1112,21 +1236,139 @@ def play(players, win):
                 pg.display.flip()
                 youngest_spider_running = SpiderRun(sp_x - 50, sp_y)
                 # player made no answer, make a correction
+                pool.append(table[table_index])
+                logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
+                is_editing = False
                 if correction and not correction.alive():
-                    pool.append(table[table_index])
-                    logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Answered ' + enter + '. Method ' + mmstr)
                     correction = Digits((120, 520))
                     correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
-                    is_editing = False
                 delayed_new_round = True
                 last_tick = pg.time.get_ticks()
             else:
                 pg.draw.line(win, (255, 255, 255), (sp_x + 60, 0), (sp_x + 60, spider_crawling.rect.y + 50))
 
+        # joker
+        if joker and joker.alive():
+            if player.action != core.PITY and fireball and fireball.alive() and fireball.precision != 0 and fireball.deg < -10:
+                player.set_action(core.PITY)
+                sh = -15 if len(enter) < 2 else 0
+                marks = Marks((260 + sh, 437 - sh))
+                marks.strikeout()
+                if mm == core.WRITE:
+                    correction = Digits((310, 390))
+                    correction.set_text(str(ma * mb))
+                else:
+                    correction = Digits((120, 520))
+                    correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+
+            # joker is shot
+            if joker.killed:
+                Explosion(joker.rect.move(120, 60))
+                Explosion(joker.rect.move(150, 50))
+                Explosion(joker.rect.move(170, 60))
+                chn2.play(snd_explosion)
+                joker.kill()
+                cannon.disappear()
+                if mm == core.MATRIX:
+                    scroll.disappear()
+                player.set_action(core.EXCITEMENT)
+                marks2 = Marks((220, 570))
+                marks2.check_mark()
+                last_tick = pg.time.get_ticks()
+                make_throw_trick = True
+            elif joker.rect.y > 850:
+                joker.kill()
+                cannon.disappear()
+                if mm == core.MATRIX:
+                    scroll.disappear()
+                # player made no answer, make a correction
+                pool.append(table[table_index])
+                logging.info('No answer for pool task ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
+                is_editing = False
+                if correction and not correction.alive():
+                    correction = Digits((120, 520))
+                    correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+                delayed_new_round = True
+                last_tick = pg.time.get_ticks()
+
         if delayed_new_round and now_tick - last_tick > 2000:
             delayed_new_round = False
-            table_index += 1
-            pg.event.post(pg.event.Event(NEW_ROUND))
+
+            # check the pool
+            if len(group_attacking_spiders) > 0 and counter_correct >= 2 and len(pool) > 0:
+                counter_correct = 0
+                pg.event.post(pg.event.Event(NEW_POOL_TASK))
+            else:
+                table_index += 1
+                pg.event.post(pg.event.Event(NEW_ROUND))
+
+        if make_throw_trick:
+            # the helper waits till at most one running spider exist and its on safe distance and is going away;
+            # or now active running spider exists
+            if stage_throwing == 0:
+                last_tick = pg.time.get_ticks()
+                stage_throwing = 1
+
+            if stage_throwing == 1 and now_tick - last_tick > 1000:
+                stage_throwing = 2
+
+            if stage_throwing == 2 and \
+                    ((len(group_running_spiders) == 1 and youngest_spider_running.facing < 0 and youngest_spider_running.rect.x < 1800) \
+                    or len(group_running_spiders) == 0):
+                stage_throwing = 3
+
+            if stage_throwing == 3:
+                if random.choice((0, 1)) == 0:
+                    helper = player_other_a
+                else:
+                    helper = player_other_b
+
+                if not main_scene.has(helper):
+                    # print("added " + helper.__repr__())
+                    helper.add(main_scene)
+                last_tick = pg.time.get_ticks()
+                stage_throwing = 4
+
+            if stage_throwing == 4 and now_tick - last_tick > 500:
+                helper.walk_y = 600
+                helper.walk_left(2000, 1400, 15.0, 0.5)
+                stage_throwing = 5
+
+            if stage_throwing == 5 and helper.walk_x <= 1400:
+                helper.set_action(core.THROW)
+                last_tick = pg.time.get_ticks()
+                stage_throwing = 6
+
+            if stage_throwing == 6 and now_tick - last_tick > 1500:
+                sparkle = Sparkle()
+                sparkle.interp = 4
+                sparkle.path = Sparkle.path7
+                stage_throwing = 7
+
+            if stage_throwing == 7 and sparkle and not sparkle.alive():
+                one_attacker = group_attacking_spiders.sprites()[0]
+                if one_attacker.start_sprite == 0:  # horizontal
+                    Explosion(one_attacker.rect.move(130, -45))
+                else:
+                    Explosion(one_attacker.rect.move(-20, 100))
+                chn2.play(snd_explosion)
+                last_tick = pg.time.get_ticks()
+                stage_throwing = 8
+
+            if stage_throwing == 8 and now_tick - last_tick > 200:
+                one_attacker.kill()
+                stage_throwing = 9
+
+            if stage_throwing == 9 and now_tick - last_tick > 1000:
+                helper.set_action(core.EXCITEMENT)
+                stage_throwing = 10
+
+            if stage_throwing == 10 and now_tick - last_tick > 1600:
+                helper.walk_right(helper.walk_x, 2000, 15, 0.5)
+                stage_throwing = 0
+                make_throw_trick = False
+                delayed_new_round = True
+                last_tick = pg.time.get_ticks()
 
         if len(group_running_spiders) > 0:
             oldest_running_spider = group_running_spiders.sprites()[0]
@@ -1199,7 +1441,7 @@ def play(players, win):
             pg.mixer.music.play(-1)
         blackout = pg.Surface((1920, 1080))
         blackout.fill((0, 0, 0))
-        for alpha in range(0, 200):
+        for alpha in range(0, 100):
             blackout.set_alpha(alpha)
             win.blit(blackout, (0, 0))
             pg.display.update()

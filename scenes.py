@@ -240,6 +240,9 @@ class Sparkle(pg.sprite.Sprite):
     path6 = [(1484, 637), (1588, 618), (1681, 619), (1766, 632), (1841, 672), (1896, 734), (1909, 811), (1884, 880),
              (1868, 900), (1858, 911)]
 
+    path7 = [(1464, 637), (1413, 607), (1350, 578), (1284, 574), (1212, 584), (1128, 607), (1050, 647), (989, 688),
+             (920, 742), (874, 794), (835, 846), (816, 879)]
+
     # path2 = [(1050, 210), (1062, 222), (1072, 235), (1079, 254), (1086, 273), (1091, 316), (1091, 363), (1087, 403),
     #          (1086, 455), (1078, 502), (1048, 565), (1012, 603), (972, 640), (932, 670), (877, 715), (811, 766),
     #          (725, 816), (659, 853), (578, 891)]
@@ -375,4 +378,34 @@ class Scroll(pg.sprite.Sprite):
                 else:
                     offset_y = 240
                 self.image.blit(self.icon, (x * 40 + offset_x, 780 - y * 40 - offset_y))
+
+
+class Joker(pg.sprite.Sprite):
+    frame_speed = 0.4
+    speed = 2
+
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self, self.containers)
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+        self.frame = 0.0
+        self.direction = True
+        self.killed = False
+
+    def update(self):
+        if not self.killed:
+            # weaving movement
+            if self.direction:
+                if self.frame < len(self.images) - 1:
+                    self.frame += self.frame_speed
+                else:
+                    self.direction = False
+            else:
+                if self.frame > 0.0:
+                    self.frame -= self.frame_speed
+                else:
+                    self.direction = True
+
+            self.rect.move_ip(0, self.speed)
+            self.image = self.images[int(self.frame)]
 

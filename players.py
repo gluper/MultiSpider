@@ -10,6 +10,7 @@ class PlayerBase(pg.sprite.Sprite):
     images_walk_left = []
     images_walk_right = []
     images_look_right = []
+    images_throw = []
 
     def __init__(self):
         pg.sprite.Sprite.__init__(self, self.containers)
@@ -101,6 +102,12 @@ class PlayerBase(pg.sprite.Sprite):
             self.image = self.images_walk_right[int(self.frame * self.speed % len(self.images_walk_right))]
             self.frame += 1
 
+        elif self.action == core.THROW:
+            idx = int(self.frame * self.speed)
+            self.image = self.images_throw[idx]
+            if idx < len(self.images_throw) - 1:
+                self.frame += 1
+
         elif self.action == core.STOP:
             pass
 
@@ -118,6 +125,8 @@ class PlayerBase(pg.sprite.Sprite):
             self.speed = 0.1
         elif action == core.WALK_LEFT or action == core.WALK_RIGHT:
             self.speed = 0.1
+        elif action == core.THROW:
+            self.speed = 0.2
         # self.start_phase = True
         self.action = action
         self.frame = 0
