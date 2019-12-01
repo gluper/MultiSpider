@@ -106,7 +106,7 @@ def play(players, win):
     text_select_player = font_player.render("Select player", 1, Color('white'))
     font_score = pg.font.SysFont("comicsansms", 36)
     font_hint = pg.font.SysFont("arial", 24)
-    text_hint = font_hint.render('Use <Arrow> keys and <Enter>', 1, Color('white'))
+    text_hint = font_hint.render('Use <Arrow> keys and <Enter>. <Esc> to exit', 1, Color('white'))
     # font_score.set_bold(1)
     text_highscores = font_score.render("High scores", 1, Color('white'))
     text_awards = font_score.render("Awards", 1, Color('white'))
@@ -176,7 +176,7 @@ def play(players, win):
         win.blit(text_score0, (350, 950))
         win.blit(text_score1, (950, 950))
         win.blit(text_score2, (1550, 950))
-        win.blit(text_hint, (1600, 1050))
+        win.blit(text_hint, (1500, 1050))
 
         for i in range(0, min(awards0, 15)):
             win.blit(star, (350 + i * 35, 1010))
@@ -204,6 +204,7 @@ def play(players, win):
     ren = font_loading.render("Loading...", 1, Color('white'))
     win.blit(ren, (600, 600))
     board = load_image('board.png')
+    bg3 = load_image('bg3.jpg')
     game_over_txt = load_image('game_over.png')
     text_hint = font_hint.render('<Esc> to skip intro', 1, Color('black'))
     icon = load_image('spider_small.png')
@@ -322,6 +323,9 @@ def play(players, win):
     snd_dundundun = load_sound('dundundun.wav')
     snd_knocking = load_sound('knocking.wav')
     snd_joker = load_sound('laugh.wav')
+    snd_thunder = load_sound('thunder.wav')
+    snd_fireball = load_sound('fireball.wav')
+    snd_shutter = load_sound('shutter.wav')
 
     if pg.mixer:
         music = os.path.join(main_dir, 'data', 'Halloween.mp3')
@@ -833,17 +837,6 @@ def play(players, win):
     pg.key.set_repeat()
     pg.event.post(pg.event.Event(NEW_ROUND))
 
-    # a = SpiderRun(950, 850)
-    # a.age = 2
-    # b = SpiderRun(1000, 860)
-    # b.age = 2
-    # c = SpiderRun(1100, 870)
-    # c.age = 2
-    # d = SpiderRun(1200, 880)
-    # d.age = 2
-    # e = SpiderRun(1200, 880)
-    # e.age = 2
-
     stage_throwing = 0
     pool_task = False
 
@@ -1252,7 +1245,7 @@ def play(players, win):
                 if not main_scene.has(helper):
                     # print("added " + helper.__repr__())
                     helper.add(main_scene)
-                    helper.walk_x = 2000
+                helper.walk_x = 2000
                 last_tick = pg.time.get_ticks()
                 stage_throwing = 4
 
@@ -1356,11 +1349,181 @@ def play(players, win):
     logging.info(players[selection].get('name', '?') + ' played ' + str(int(seconds / 60)) + ' minutes.')
     players[selection]['high_score'] = max(players[selection]['high_score'], score_value)
     players[selection]['total'] += score_value
+    save_players_data(players)
+
     if not game_over and table_index >= len(table) - 1:
         players[selection]['awards'] += 1
         logging.info('Player ' + players[selection].get('name', '?') + ' has won.')
+        stage_win = 0
+        sparkle1 = None
+        sparkle2 = None
+        sparkle3 = None
+        sparkle4 = None
+        sparkle5 = None
+        sparkle6 = None
 
-    save_players_data(players)
+        while True:
+            for event in pg.event.get():
+                keys = pg.key.get_pressed()
+
+            now_tick = pg.time.get_ticks()
+
+            if event.type == pg.QUIT:
+                return False
+
+            main_scene.clear(win, bg)
+            main_scene.update()
+
+            if stage_win == 0:
+                if pg.mixer:
+                    pg.mixer.music.fadeout(500)
+                chn0.play(snd_thunder)
+                last_tick = pg.time.get_ticks()
+                stage_win = 1
+
+            if stage_win == 1 and sparkle1 is None and now_tick - last_tick > 2000:
+                chn1.play(snd_fireball)
+                sparkle1 = Sparkle()
+                sparkle1.interp = 4
+                sparkle1.path = Sparkle.path8
+
+            if stage_win == 1 and sparkle2 is None and now_tick - last_tick > 2500:
+                chn2.play(snd_fireball)
+                sparkle2 = Sparkle()
+                sparkle2.interp = 4
+                sparkle2.path = Sparkle.path9
+
+            if stage_win == 1 and sparkle3 is None and now_tick - last_tick > 2800:
+                chn0.play(snd_fireball)
+                sparkle3 = Sparkle()
+                sparkle3.interp = 10
+                sparkle3.path = Sparkle.path10
+
+            if stage_win == 1 and sparkle4 is None and now_tick - last_tick > 3000:
+                chn1.play(snd_fireball)
+                sparkle4 = Sparkle()
+                sparkle4.interp = 10
+                sparkle4.path = Sparkle.path11
+
+            if stage_win == 1 and sparkle5 is None and now_tick - last_tick > 3200:
+                chn2.play(snd_fireball)
+                sparkle5 = Sparkle()
+                sparkle5.interp = 4
+                sparkle5.path = Sparkle.path9
+
+            if stage_win == 1 and sparkle6 is None and now_tick - last_tick > 3500:
+                chn0.play(snd_fireball)
+                sparkle6 = Sparkle()
+                sparkle6.interp = 4
+                sparkle6.path = Sparkle.path8
+
+            if stage_win == 1 and sparkle1 and not sparkle1.alive():
+                for sprite in group_all_spiders.sprites():
+                    sprite.kill()
+
+            if stage_win == 1 and sparkle3 and not sparkle3.alive():
+                board_text.kill()
+                if digits and digits.alive():
+                    digits.kill()
+                if marks and marks.alive():
+                    marks.kill()
+                if marks2 and marks2.alive():
+                    marks2.kill()
+                if correction and correction.alive():
+                    correction.kill()
+
+            if stage_win == 1 and sparkle5 and not sparkle5.alive():
+                glass.kill()
+                last_tick = pg.time.get_ticks()
+                stage_win = 2
+
+            if stage_win == 2 and now_tick - last_tick > 1000:
+                chn0.play(snd_thunder)
+                last_tick = pg.time.get_ticks()
+                stage_win = 3
+
+            if stage_win == 3 and now_tick - last_tick > 2500:
+                win.blit(bg3, (0, 0))
+                bg.blit(bg3, (0, 0))  # strange workaround. Need better solution
+                pg.display.flip()
+
+                music_monsters = os.path.join(main_dir, 'data', 'happy_dreams.mp3')
+                if pg.mixer:
+                    pg.mixer.music.load(music_monsters)
+                    pg.mixer.music.play(-1)
+                stage_win = 4
+
+            if stage_win == 4 and now_tick - last_tick > 3000:
+                if not main_scene.has(player_other_a):
+                    player_other_a.add(main_scene)
+                if not main_scene.has(player_other_b):
+                    player_other_b.add(main_scene)
+
+                player_other_a.walk_x = 2000
+                player_other_b.walk_x = 2000
+                player_other_a.walk_y = 600
+                player_other_b.walk_y = 600
+                player_other_a.walk_left(2000, 500, 15.0, 0.5)
+                player_other_b.walk_left(2200, 700, 15.0, 0.5)
+                stage_win = 5
+
+            if stage_win == 5 and player_other_a.walk_x <= 500:
+                last_tick = pg.time.get_ticks()
+                stage_win = 6
+
+            if stage_win == 6 and now_tick - last_tick > 1000:
+                player.set_action(core.EXCITEMENT)
+                player_other_a.set_action(core.EXCITEMENT)
+                player_other_b.set_action(core.EXCITEMENT)
+                stage_win = 7
+
+            if stage_win == 7:
+                if int(player.frame * player.speed) >= player.jump_idx:
+                     player.action = core.STOP
+                if int(player_other_a.frame * player_other_a.speed) >= player_other_a.jump_idx:
+                    player_other_a.action = core.STOP
+                if int(player_other_b.frame * player_other_b.speed) >= player_other_b.jump_idx:
+                    player_other_b.action = core.STOP
+                    last_tick = pg.time.get_ticks()
+                    stage_win = 8
+
+            if stage_win == 8:
+                chn1.play(snd_shutter)
+                last_tick = pg.time.get_ticks()
+                stage_win = 9
+
+            if stage_win == 9 and now_tick - last_tick > 3000:
+                player.action = core.EXCITEMENT
+                player_other_a.action = core.EXCITEMENT
+                player_other_b.action = core.EXCITEMENT
+                stage_win = 10
+
+            if stage_win == 10 and now_tick - last_tick > 5000:
+                player.walk_x = 320
+                player_other_a.walk_x = 500
+                player_other_b.walk_x = 700
+                player.walk_y = 450
+                player_other_a.walk_y = 450
+                player_other_b.walk_y = 450
+                player.walk_right(player.walk_x, 2000, 15, 1.0)
+                player_other_a.walk_right(player_other_a.walk_x, 2000, 15, 1.0)
+                player_other_b.walk_right(player_other_b.walk_x, 2000, 15, 1.0)
+                player.walk_speed_y = 1.0
+                player_other_a.walk_speed_y = 1.0
+                player_other_b.walk_speed_y = 1.0
+                stage_win = 11
+
+            if stage_win == 11 and player.walk_x >= 2000:
+                if keys[pg.K_ESCAPE]:
+                    return True
+
+            # draw the scene
+            dirty = main_scene.draw(win)
+            pg.display.flip()
+
+            # cap the framerate
+            clock.tick(40)
+
 
     if game_over:
         if pg.mixer:

@@ -153,18 +153,21 @@ class PlayerBase(pg.sprite.Sprite):
 class Player1(PlayerBase):
     def __init__(self):
         PlayerBase.__init__(self)
+        self.jump_idx = 4
         self.thinking_repeat_index = 6
 
 
 class Player2(PlayerBase):
     def __init__(self):
         PlayerBase.__init__(self)
+        self.jump_idx = 4
         self.thinking_repeat_index = 8
 
 
 class Player3(PlayerBase):
     def __init__(self):
         PlayerBase.__init__(self)
+        self.jump_idx = 6
         self.thinking_repeat_index = 9
 
 
