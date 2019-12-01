@@ -46,14 +46,14 @@ def main(winstyle = 0):
 
 
 def load_players_data():
-    with open(os.path.join("data", "players.json"), "r") as read_file:
+    with open(os.path.join("players.json"), "r") as read_file:
         p_data = json.load(read_file)
         players = p_data['players']
         return players
 
 
 def save_players_data(players):
-    with open(os.path.join("data", "players.json"), "w") as write_file:
+    with open(os.path.join("players.json"), "w") as write_file:
         json.dump({'players': players}, write_file)
 
 

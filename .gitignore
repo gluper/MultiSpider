@@ -106,6 +106,6 @@ venv.bak/
 # .idea settings
 
 .idea
-
+players.json
 log.txt
 data/
