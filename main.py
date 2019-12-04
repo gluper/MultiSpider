@@ -42,6 +42,7 @@ def main(winstyle = 0):
     while play(players, win):
         pass
 
+    save_players_data(players)
     logging.info('Application closed ' + str(datetime.datetime.now()))
 
 
@@ -164,7 +165,7 @@ def play(players, win):
             spider_deco.set_position(1500)
             pg.mixer.Channel(0).play(snd_snake)
 
-        if keys[pg.K_RETURN] or keys[pg.K_SPACE]:
+        if keys[pg.K_RETURN] or keys[pg.K_SPACE] or keys[pg.K_KP_ENTER]:
             break
 
         player_selection_scene.clear(win, brick)
@@ -925,40 +926,40 @@ def play(players, win):
 
             if is_editing:
                 if event.type == pg.KEYDOWN and not wait_for_release:
-                    if event.key == pg.K_0:
+                    if event.key == pg.K_0 or event.key == pg.K_KP0:
                         enter += '0'
                         changed = True
-                    elif event.key == pg.K_1:
+                    elif event.key == pg.K_1 or event.key == pg.K_KP1:
                         enter += '1'
                         changed = True
-                    elif event.key == pg.K_2:
+                    elif event.key == pg.K_2 or event.key == pg.K_KP2:
                         enter += '2'
                         changed = True
-                    elif event.key == pg.K_3:
+                    elif event.key == pg.K_3 or event.key == pg.K_KP3:
                         enter += '3'
                         changed = True
-                    elif event.key == pg.K_4:
+                    elif event.key == pg.K_4 or event.key == pg.K_KP4:
                         enter += '4'
                         changed = True
-                    elif event.key == pg.K_5:
+                    elif event.key == pg.K_5 or event.key == pg.K_KP5:
                         enter += '5'
                         changed = True
-                    elif event.key == pg.K_6:
+                    elif event.key == pg.K_6 or event.key == pg.K_KP6:
                         enter += '6'
                         changed = True
-                    elif event.key == pg.K_7:
+                    elif event.key == pg.K_7 or event.key == pg.K_KP7:
                         enter += '7'
                         changed = True
-                    elif event.key == pg.K_8:
+                    elif event.key == pg.K_8 or event.key == pg.K_KP8:
                         enter += '8'
                         changed = True
-                    elif event.key == pg.K_9:
+                    elif event.key == pg.K_9 or event.key == pg.K_KP9:
                         enter += '9'
                         changed = True
                     elif event.key == pg.K_BACKSPACE:
                         enter = enter[:-1]
                         changed = True
-                    elif event.key == pg.K_RETURN:
+                    elif event.key == pg.K_RETURN or event.key == pg.K_KP_ENTER:
                         changed = False
                         wait_for_release = True
                     elif event.key == pg.K_SPACE:
@@ -977,7 +978,7 @@ def play(players, win):
 
                 elif wait_for_release and event.type == KEYUP:
                     wait_for_release = False
-                    if len(enter) > 0 and event.key == pg.K_RETURN:
+                    if len(enter) > 0 and (event.key == pg.K_RETURN or event.key == pg.K_KP_ENTER):
                         is_editing = False
                         if int(enter) == ma * mb:
                             precision = 0
@@ -1356,7 +1357,6 @@ def play(players, win):
     logging.info(players[selection].get('name', '?') + ' played ' + str(int(seconds / 60)) + ' minutes.')
     players[selection]['high_score'] = max(players[selection]['high_score'], score_value)
     players[selection]['total'] += score_value
-    save_players_data(players)
 
     if not game_over and table_index >= len(table) - 1:
         players[selection]['awards'] += 1
