@@ -107,7 +107,7 @@ def play(players, win):
     text_select_player = font_player.render("Select player", 1, Color('white'))
     font_score = pg.font.SysFont("comicsansms", 36)
     font_hint = pg.font.SysFont("arial", 24)
-    text_hint = font_hint.render('Use <Arrow> keys and <Enter>. <Esc> to exit', 1, Color('white'))
+    text_hint = font_hint.render('Use <Arrow> keys and <Enter>. <q> to exit', 1, Color('white'))
     # font_score.set_bold(1)
     text_highscores = font_score.render("High scores", 1, Color('white'))
     text_awards = font_score.render("Awards", 1, Color('white'))
@@ -139,7 +139,7 @@ def play(players, win):
                 return False
 
         keys = pg.key.get_pressed()
-        if keys[pg.K_ESCAPE]:
+        if keys[pg.K_q]:
             pg.quit()
             logging.info('Aborted ' + str(datetime.datetime.now()))
             return False
@@ -1353,6 +1353,9 @@ def play(players, win):
     players[selection]['high_score'] = max(players[selection]['high_score'], score_value)
     players[selection]['total'] += score_value
 
+    font_hint = pg.font.SysFont("arial", 24)
+    text_hint = font_hint.render('<Esc> return to main', 1, Color('white'))
+
     if not game_over and table_index >= len(table) - 1:
         players[selection]['awards'] += 1
         logging.info('Player ' + players[selection].get('name', '?') + ' has won.')
@@ -1522,6 +1525,7 @@ def play(players, win):
                 stage_win = 11
 
             if stage_win == 11 and player.walk_x >= 2000:
+                win.blit(text_hint, (1500, 1050))
                 if keys[pg.K_ESCAPE]:
                     return True
 
@@ -1549,7 +1553,7 @@ def play(players, win):
 
         font_score = pg.font.SysFont("comicsansms", 36)
         font_hint = pg.font.SysFont("arial", 24)
-        text_hint = font_hint.render('<Esc> Exit, <n> New game', 1, Color('white'))
+        text_hint = font_hint.render("<n> New game, <q> Exit", 1, Color('white'))
         text_score = font_score.render("Score " + str(score_value), 1, Color('white'))
 
         spider_deco = SpiderRunDeco(300, 780)
@@ -1560,7 +1564,7 @@ def play(players, win):
             for event in pg.event.get():
                 keys = pg.key.get_pressed()
 
-            if keys[pg.K_ESCAPE] or event.type == pg.QUIT:
+            if keys[pg.K_q] or event.type == pg.QUIT:
                 return False
 
             if keys[pg.K_n]:
