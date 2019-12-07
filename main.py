@@ -144,12 +144,12 @@ def play(players, win):
             logging.info('Aborted ' + str(datetime.datetime.now()))
             return False
 
-        if keys[pg.K_RIGHT]:
+        if keys[pg.K_RIGHT] or keys[pg.K_KP6]:
             now_tick = pg.time.get_ticks()
             if now_tick - last_tick > 2000:
                 last_tick = now_tick
                 selection = min(2, selection + 1)
-        if keys[pg.K_LEFT]:
+        if keys[pg.K_LEFT] or keys[pg.K_KP4]:
             now_tick = pg.time.get_ticks()
             if now_tick - last_tick > 2000:
                 last_tick = now_tick
@@ -867,7 +867,7 @@ def play(players, win):
                     pool_task = False
 
                 mmstr = ['Ask', 'Write', 'Matrix'][mm]
-                print(table[table_index])
+                # print(table[table_index])
                 difficulty = max(ma, mb)
                 penalty = 0
 
@@ -1356,6 +1356,12 @@ def play(players, win):
     font_hint = pg.font.SysFont("arial", 24)
     text_hint = font_hint.render('<Esc> return to main', 1, Color('white'))
 
+    rect_photo = pg.Rect(300, 370, 750, 600)
+    photo = pg.Surface(rect_photo.size)
+    photo = photo.convert_alpha()
+    angle = 0.0
+    incr_angle = False
+
     if not game_over and table_index >= len(table) - 1:
         players[selection]['awards'] += 1
         logging.info('Player ' + players[selection].get('name', '?') + ' has won.')
@@ -1459,15 +1465,14 @@ def play(players, win):
                 stage_win = 4
 
             if stage_win == 4 and now_tick - last_tick > 3000:
-                if not main_scene.has(player_other_a):
-                    player_other_a.add(main_scene)
-                if not main_scene.has(player_other_b):
-                    player_other_b.add(main_scene)
-
                 player_other_a.walk_x = 2000
                 player_other_b.walk_x = 2000
                 player_other_a.walk_y = 600
                 player_other_b.walk_y = 600
+                if not main_scene.has(player_other_a):
+                    player_other_a.add(main_scene)
+                if not main_scene.has(player_other_b):
+                    player_other_b.add(main_scene)
                 player_other_a.walk_left(2000, 500, 15.0, 0.5)
                 player_other_b.walk_left(2200, 700, 15.0, 0.5)
                 stage_win = 5
@@ -1500,10 +1505,16 @@ def play(players, win):
 
             if stage_win == 8:
                 chn1.play(snd_shutter)
+                dirty = main_scene.draw(win)
+
+                # make a photo
+                photo.blit(win, dest=(0, 0), area=rect_photo)
+                # pg.image.save(photo, "photo.jpg")
+
                 last_tick = pg.time.get_ticks()
                 stage_win = 9
 
-            if stage_win == 9 and now_tick - last_tick > 3000:
+            if stage_win == 9 and now_tick - last_tick > 1500:
                 player.action = core.EXCITEMENT
                 player_other_a.action = core.EXCITEMENT
                 player_other_b.action = core.EXCITEMENT
@@ -1525,6 +1536,18 @@ def play(players, win):
                 stage_win = 11
 
             if stage_win == 11 and player.walk_x >= 2000:
+                win.blit(bg3, (0, 0))
+                if incr_angle:
+                    angle += 0.4
+                    if angle > 10:
+                        incr_angle = False
+                else:
+                    angle -= 0.4
+                    if angle < -10:
+                        incr_angle = True
+
+                win.blit(pg.transform.rotate(photo, int(angle)), (930, 150))
+
                 win.blit(text_hint, (1500, 1050))
                 if keys[pg.K_ESCAPE]:
                     return True
