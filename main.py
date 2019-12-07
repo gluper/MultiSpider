@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import json
 import logging
@@ -14,6 +15,9 @@ from fonts import Score
 from players import Player1, Player2, Player3, Fairy
 from utils import load_sound, load_image, load_images, load_sheet, main_dir
 
+if getattr(sys, 'frozen', False):
+    os.chdir(os.path.dirname(sys.executable))
+
 
 def main(winstyle = 0):
 
@@ -28,8 +32,8 @@ def main(winstyle = 0):
         p = pg.display.list_modes(depth=0)
 
     #decorate the game window
-    #icon = pg.transform.scale(Alien.images[0], (32, 32))
-    #pg.display.set_icon(icon)
+    icon = load_image('spider_small.png')
+    pg.display.set_icon(icon)
     pg.display.set_caption('MultiSpider')
     pg.mouse.set_visible(0)
 
@@ -778,10 +782,6 @@ def play(players, win):
         spider_crawling_deco.kill()
     if spider_running_deco and spider_running_deco.alive():
         spider_running_deco.kill()
-    # if player_other_a:
-    #     player_other_a.kill()
-    # if player_other_b:
-    #     player_other_b.kill()
     if fairy:
         fairy.kill()
     # if intro has been aborted create objects especially
@@ -792,17 +792,12 @@ def play(players, win):
 
     youngest_spider_running = None
     youngest_attacker = None
-    #sp_x = random.choice((1100, 1200, 1300, 1400, 1500))#(1100, 1200, 1450, 1700))
-    #sp_y = 850
     fireball = None
-    spider_crawling = None # SpiderCrawlBig(sp_x)
-    #spider_crawling.speed = 2
+    spider_crawling = None
 
     # whether the spider will attack in horizontal or vertical position
     hrz = False
-    run = True
 
-    channel = None
     table_index = 0
     snd_cycle = 0
 
@@ -810,7 +805,6 @@ def play(players, win):
     is_editing = False
 
     task_text = ''
-    # changed = False
     wait_for_release = False
     delayed_task = False
     delayed_new_round = False
@@ -880,7 +874,7 @@ def play(players, win):
                 if mm == core.ASK:
                     board_text.set_board_image(core.TXT_LISTEN)
                     if pool_task:
-                        delay = 2200  # 'cause Joker laughs somethat too long
+                        delay = 2200  # 'cause Joker laughs somewhat too long
                     delayed_task = True
                 elif mm == core.WRITE:
                     chn0.play(snd_knocking)
@@ -1007,7 +1001,7 @@ def play(players, win):
                 joker.rect.topleft = (950, -50)
             else:
                 sp_x = random.choice((900, 950, 1000, 1050, 1100, 1150))#, 1700))
-                sp_y = 850 + len(group_running_spiders)
+                sp_y = 850 + 10 * (len(group_running_spiders) + len(group_attacking_spiders))
                 spider_crawling = SpiderCrawlBig(sp_x)
 
             if mm == core.ASK:
@@ -1306,10 +1300,12 @@ def play(players, win):
             oldest_running_spider.kill()
             # horizontally and vertically attacking spiders are placed a little bit different
             if hrz:
-                youngest_attacker = SpiderAttack(rect.x, rect.y, start_sprite=0)
+                youngest_attacker = SpiderAttack(rect.x - len(group_attacking_spiders) * 20,
+                                                 rect.y + len(group_attacking_spiders) * 20, start_sprite=0)
                 hrz = False  # the next attacking spider must be horizontal
             else:
-                youngest_attacker = SpiderAttack(rect.x + 180, rect.y - 180 + len(group_attacking_spiders) * 4, start_sprite=16)
+                youngest_attacker = SpiderAttack(rect.x + 190 - len(group_attacking_spiders) * 20,
+                                                 rect.y - 220 + len(group_attacking_spiders) * 20, start_sprite=16)
                 hrz = True
             if glass.alive():
                 chn1.play(snd_bang, loops=max(len(group_attacking_spiders), 3))
