@@ -347,6 +347,7 @@ def play(players, win):
     group_all_spiders = pg.sprite.Group()
     group_running_spiders = pg.sprite.Group()
     group_attacking_spiders = pg.sprite.Group()
+    group_board_textes = pg.sprite.Group()
 
     #assign default groups to each sprite class
     SpiderAttack.containers = group_attacking_spiders, group_all_spiders, main_scene
@@ -359,9 +360,9 @@ def play(players, win):
     Explosion.containers = main_scene, intro_scene
     Blaze.containers = main_scene
     SpiderExplosion.containers = main_scene
-    Score.containers = main_scene
-    Digits.containers = main_scene
-    Marks.containers = main_scene
+    Score.containers = main_scene, group_board_textes
+    Digits.containers = main_scene, group_board_textes
+    Marks.containers = main_scene, group_board_textes
 
     Player1.containers = intro_scene
     Player2.containers = intro_scene
@@ -870,14 +871,8 @@ def play(players, win):
                 difficulty = max(ma, mb)
                 penalty = 0
 
-                if digits and digits.alive():
-                    digits.kill()
-                if marks and marks.alive():
-                    marks.kill()
-                if marks2 and marks2.alive():
-                    marks2.kill()
-                if correction and correction.alive():
-                    correction.kill()
+                for board_text_sprite in group_board_textes.sprites():
+                    board_text_sprite.kill()
 
                 last_tick = pg.time.get_ticks()
                 delay = 1000
@@ -1486,13 +1481,19 @@ def play(players, win):
 
             if stage_win == 7:
                 if int(player.frame * player.speed) >= player.jump_idx:
-                     player.action = core.STOP
+                    player.action = core.STOP
+                    # third player has more frames till jump
+                    if selection == 2:
+                        last_tick = pg.time.get_ticks()
+                        stage_win = 8
                 if int(player_other_a.frame * player_other_a.speed) >= player_other_a.jump_idx:
                     player_other_a.action = core.STOP
                 if int(player_other_b.frame * player_other_b.speed) >= player_other_b.jump_idx:
                     player_other_b.action = core.STOP
-                    last_tick = pg.time.get_ticks()
-                    stage_win = 8
+                    # because the third player has more frames till jump picture
+                    if selection != 2:
+                        last_tick = pg.time.get_ticks()
+                        stage_win = 8
 
             if stage_win == 8:
                 chn1.play(snd_shutter)
