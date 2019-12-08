@@ -1,11 +1,12 @@
 import os
+import sys
 import pygame as pg
 
 # https://nerdparadise.com/programming/pygame/part5
 # https://realpython.com/pygame-a-primer
 
 
-main_dir = os.path.split(os.path.abspath(__file__))[0]
+main_dir = getattr(sys, '_MEIPASS', os.path.split(os.path.abspath(__file__))[0])
 
 
 def load_image(file):
