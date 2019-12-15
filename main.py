@@ -823,6 +823,7 @@ def play(players, win):
     joker = None
 
     scroll = Scroll(icon)
+    this_round_shot = False
 
     ma = 1  # multipliers
     mb = 1
@@ -864,6 +865,7 @@ def play(players, win):
                 # print(table[table_index])
                 difficulty = max(ma, mb)
                 penalty = 0
+                this_round_shot = False
 
                 for board_text_sprite in group_board_textes.sprites():
                     board_text_sprite.kill()
@@ -978,6 +980,8 @@ def play(players, win):
 
                         chn2.play(snd_shot)
                         cannon.fire()
+                        this_round_shot = True
+
                         if pool_task:
                             fireball = Fireball(joker, precision)
                         else:
@@ -1097,10 +1101,11 @@ def play(players, win):
 
         # transform crawling -> running
         if spider_crawling and spider_crawling.alive():
-            if player.action != core.PITY and fireball and fireball.alive() and fireball.precision != 0 and fireball.deg < -10:
+            if player.action != core.PITY and fireball and fireball.alive() and fireball.precision != 0 and \
+                    (fireball.deg < -10 or spider_crawling.rect.left - fireball.x > 30) and this_round_shot:
                 counter_correct = 0
                 player.set_action(core.PITY)
-                spider_crawling.speed = 2  # after missed shop increase speed
+                spider_crawling.speed = 2  # after missed shot increase speed
                 sh = -15 if len(enter) < 2 else 0
                 marks = Marks((260 + sh, 437 - sh))
                 marks.strikeout()
@@ -1151,13 +1156,28 @@ def play(players, win):
                 win.blit(bg, (0, 0))
                 pg.display.flip()
                 youngest_spider_running = SpiderRun(sp_x - 50, sp_y)
-                # player made no answer, make a correction
-                if correction and not correction.alive():
-                    is_editing = False
-                    correction = Digits((120, 520))
-                    correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
-                    pool.append(table[table_index])
-                    logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
+                is_editing = False
+
+                if correction is None or not correction.alive():
+                    if this_round_shot:
+                        # player shot, but too late (and wrong)
+                        player.set_action(core.PITY)
+                        sh = -15 if len(enter) < 2 else 0
+                        marks = Marks((260 + sh, 437 - sh))
+                        marks.strikeout()
+                        if mm == core.WRITE:
+                            correction = Digits((310, 390))
+                            correction.set_text(str(ma * mb))
+                        else:
+                            correction = Digits((120, 520))
+                            correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+                    else:
+                        # player made no answer, make a correction
+                        correction = Digits((120, 520))
+                        correction.set_text(str(ma) + '*' + str(mb) + '=' + str(ma * mb))
+                        pool.append(table[table_index])
+                        logging.info('No answer ' + str(ma) + ' * ' + str(mb) + '. Method ' + mmstr)
+
                 delayed_new_round = True
                 last_tick = pg.time.get_ticks()
             else:

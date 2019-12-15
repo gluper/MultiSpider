@@ -141,7 +141,7 @@ class Fireball(pg.sprite.Sprite):
             self.kill()
             self.spider_crawling.killed = True
 
-        if self.y > core.SCREENRECT[2]:
+        if self.y > core.SCREENRECT[2] or self.x < -50:
             self.kill()
 
 
